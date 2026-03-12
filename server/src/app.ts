@@ -2,10 +2,13 @@
 
 import express from 'express';
 import type { Request, Response } from 'express';
+import 'dotenv/config';
+import { connectDB } from './config/db';
 
 const app = express();
+connectDB();
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_req: Request, res: Response) => {
   res.json({
     success: true,
     message: 'API Running',

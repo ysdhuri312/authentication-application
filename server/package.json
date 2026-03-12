@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./dist/server.js",
     "build": "tsc",
-    "dev": "nodemon"
+    "dev": "nodemon",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:generate": "npx prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -15,12 +17,24 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^25.4.0",
+    "@types/pg": "^8.18.0",
     "nodemon": "^3.1.14",
+    "prisma": "^7.5.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.5.0",
+    "@prisma/client": "^7.5.0",
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "pg": "^8.20.0",
     "zod": "^4.3.6"
+  },
+  "overrides": {
+    "@hono/node-server": "1.19.11",
+    "hono": "4.12.7",
+    "lodash": "4.17.23",
+    "valibot": "^1.2.0"
   }
 }
