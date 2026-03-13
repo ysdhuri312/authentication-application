@@ -8,9 +8,8 @@ const adapter = new PrismaPg({
 });
 
 export const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'dev' ? ['error', 'query', 'warn'] : ['error'],
+  // log: process.env.NODE_ENV === 'dev' ? ['error', 'query', 'warn'] : ['error'],
   adapter,
-  errorFormat: 'minimal',
 });
 
 export const connectDB = async () => {
