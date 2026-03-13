@@ -7,9 +7,10 @@ const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
 });
 
-const prisma = new PrismaClient({
+export const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'dev' ? ['error', 'query', 'warn'] : ['error'],
   adapter,
+  errorFormat: 'minimal',
 });
 
 export const connectDB = async () => {
