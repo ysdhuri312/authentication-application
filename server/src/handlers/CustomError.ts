@@ -2,8 +2,8 @@
 
 class CustomErrorHandler extends Error {
   constructor(
-    message: string,
-    public statusCode: number,
+    public statusCode?: number,
+    message?: string,
   ) {
     super(message);
     this.statusCode = statusCode;
@@ -11,3 +11,5 @@ class CustomErrorHandler extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 }
+
+export default CustomErrorHandler;
