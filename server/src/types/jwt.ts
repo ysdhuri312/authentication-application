@@ -1,3 +1,7 @@
 /** @format */
 
-export type jwtPayload = { id: number; email: string; role: 'USER' | 'ADMIN' };
+export type jwtPayload = {
+  id: number;
+  userEmail: string;
+  role: 'USER' | 'ADMIN';
+};
