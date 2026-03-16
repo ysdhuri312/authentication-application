@@ -3,10 +3,11 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 import { jwtPayload } from '../types/jwt';
+import CustomErrorHandler from '../handlers/CustomError';
 
 export const creatAccessToken = (payload: jwtPayload) => {
   const token = jwt.sign(payload, env.JWT_ACCESS_TOKEN, {
-    expiresIn: '30m',
+    expiresIn: '15m',
   });
   return token;
 };
@@ -14,4 +15,17 @@ export const creatAccessToken = (payload: jwtPayload) => {
 export const creatRefreshToken = (payload: jwtPayload) => {
   const token = jwt.sign(payload, env.JWT_REFRESH_TOKEN, { expiresIn: '7d' });
   return token;
+};
+
+export const verifyToken = (token: string): jwtPayload => {
+  try {
+    const { id, userEmail, role } = jwt.verify(
+      token,
+      env.JWT_REFRESH_TOKEN,
+    ) as jwtPayload;
+
+    return { id, userEmail, role };
+  } catch (err) {
+    throw new CustomErrorHandler(401, 'Invalid refres token');
+  }
 };

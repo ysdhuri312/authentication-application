@@ -1,6 +1,6 @@
 /** @format */
 
-import z, { email } from 'zod';
+import z, { email, startsWith } from 'zod';
 
 export const registerSchema = z.object({
   fullname: z.string().trim().min(3, 'Name must be at least three character'),
@@ -18,6 +18,8 @@ export const loginSchema = z.object({
   email: z.email('Invalid email'),
   password: z.string(),
 });
+
+export const authHeaderSchema = z.string();
 
 export type RegisterDTO = z.infer<typeof registerSchema>;
 export type loginDTO = z.infer<typeof loginSchema>;
