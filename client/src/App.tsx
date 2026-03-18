@@ -1,11 +1,18 @@
 /** @format */
 
 import './App.css';
+import Header from './components/Header';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
 function App() {
   return (
     <>
-      <h1>Hello world</h1>
+      <Header />
+      <Home />
+      {/* <Login />
+      <Register /> */}
     </>
   );
 }
