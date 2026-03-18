@@ -6,12 +6,11 @@ type CookieObject = {
   httpOnly: boolean;
   secure: boolean;
   sameSite: 'lax' | 'strict' | 'none';
-  maxAge: number;
+  maxAge?: number;
 };
 
 export const cookieOptions: CookieObject = {
   httpOnly: true,
   secure: env.NODE_ENV === 'dev' ? false : true,
   sameSite: env.NODE_ENV === 'dev' ? 'none' : 'strict',
-  maxAge: 15 * 60 * 1000,
 };
