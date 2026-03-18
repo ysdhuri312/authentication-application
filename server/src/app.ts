@@ -2,10 +2,14 @@
 
 import express from 'express';
 import type { Request, Response } from 'express';
+import cookieParser from 'cookie-parser';
 import 'dotenv/config';
+
 import { connectDB } from './config/db';
 
 import authRouter from './routes/v1/auth.route';
+import dashboardRouter from './routes/v1/dashboard.route';
+
 import errorHandler from './handlers/error';
 
 const app = express();
@@ -13,6 +17,7 @@ connectDB();
 
 // Middlewares
 app.use(express.json());
+app.use(cookieParser());
 
 app.get('/', (_req: Request, res: Response) => {
   res.json({
@@ -23,6 +28,7 @@ app.get('/', (_req: Request, res: Response) => {
 });
 
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/dashboard', dashboardRouter);
 
 app.use(errorHandler);
 
