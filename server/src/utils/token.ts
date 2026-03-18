@@ -17,7 +17,7 @@ export const creatRefreshToken = (payload: jwtPayload) => {
   return token;
 };
 
-export const verifyToken = (token: string): jwtPayload => {
+export const verifyRefreshToken = (token: string): jwtPayload => {
   try {
     const { id, userEmail, role } = jwt.verify(
       token,
@@ -26,6 +26,15 @@ export const verifyToken = (token: string): jwtPayload => {
 
     return { id, userEmail, role };
   } catch (err) {
-    throw new CustomErrorHandler(401, 'Invalid refres token');
+    throw new CustomErrorHandler(401, 'Invalid refresh token');
+  }
+};
+
+export const verifyAccessToken = (token: string): jwtPayload => {
+  try {
+    const payload = jwt.verify(token, env.JWT_ACCESS_TOKEN) as jwtPayload;
+    return payload;
+  } catch (err) {
+    throw new CustomErrorHandler(401, 'Invalid access token');
   }
 };
