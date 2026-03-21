@@ -1,18 +1,13 @@
 /** @format */
 
 import './App.css';
-import Header from './components/Header';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import { RouterProvider } from 'react-router';
+import router from './router/router';
 
 function App() {
   return (
     <>
-      <Header />
-      <Home />
-      {/* <Login />
-      <Register /> */}
+      <RouterProvider router={router} />
     </>
   );
 }

@@ -1,5 +1,7 @@
 /** @format */
 
+import { Link } from 'react-router';
+
 const Register = () => {
   return (
     <section className='pt-20'>
@@ -83,9 +85,9 @@ const Register = () => {
 
             <div className='bg-gray-50 rounded-lg py-4 text-center text-sm'>
               Already have an account?{' '}
-              <a href='/login' className='text-blue-600 font-semibold'>
+              <Link to='/login' className='text-blue-600 font-semibold'>
                 Log in
-              </a>
+              </Link>
             </div>
           </form>
         </div>

@@ -1,11 +1,13 @@
 /** @format */
 
+import { Link } from 'react-router';
+
 const Login = () => {
   return (
-    <section className=' pt-5'>
+    <section className='pt-5'>
       <div className='container'>
         <div className='flex flex-col justify-center items-center h-screen'>
-          <h1 className='text-3xl font-bold text-gray-900 text-center '>
+          <h1 className='mb-3 text-3xl font-bold text-gray-900 text-center '>
             Log in to continue
           </h1>
           <form>
@@ -52,12 +54,12 @@ const Login = () => {
 
             <div className='bg-gray-50 rounded-lg py-4 text-center text-sm'>
               Don&apos;t have an account?{' '}
-              <a
-                href='/register'
+              <Link
+                to='/register'
                 className='text-blue-600 font-semibold cursor-pointer'
               >
                 Register
-              </a>
+              </Link>
             </div>
           </form>
         </div>
