@@ -3,6 +3,7 @@
 import express from 'express';
 import type { Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import 'dotenv/config';
 
 import { connectDB } from './config/db';
@@ -18,6 +19,12 @@ connectDB();
 // Middlewares
 app.use(express.json());
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  }),
+);
 
 app.get('/', (_req: Request, res: Response) => {
   res.json({
