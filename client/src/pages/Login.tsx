@@ -1,8 +1,37 @@
 /** @format */
 
-import { Link } from 'react-router';
+import { useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { userLogin } from '../api';
 
 const Login = () => {
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const passwordRef = useRef<HTMLInputElement | null>(null);
+  const navigate = useNavigate();
+
+  // const [formData, setFormData] = useState({ email: '', password: '' });
+  // function handleChange(e: React.ChangeEvent<HTMLFormElement>) {
+  //   const { name, value } = e.target;
+  //   setFormData({
+  //     ...formData,
+  //     [name]: value,
+  //   });
+  // }
+
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const email = emailRef.current?.value;
+    const password = passwordRef.current?.value;
+
+    if (!email || !password) throw new Error();
+
+    const res = await userLogin({ email, password });
+    if (!res?.data.success) throw new Error(res.data.message);
+
+    navigate('/about');
+  }
+
   return (
     <section className='pt-5'>
       <div className='container'>
@@ -10,18 +39,22 @@ const Login = () => {
           <h1 className='mb-3 text-3xl font-bold text-gray-900 text-center '>
             Log in to continue
           </h1>
-          <form>
+          <form onSubmit={handleSubmit}>
             <input
               type='email'
               placeholder='Email'
+              name='email'
               className='w-full mb-5 border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600'
+              ref={emailRef}
               required
             />
 
             <input
               type='password'
               placeholder='Password'
+              name='password'
               className='w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600'
+              ref={passwordRef}
               required
             />
 
