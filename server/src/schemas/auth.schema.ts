@@ -1,6 +1,6 @@
 /** @format */
 
-import z, { email, startsWith } from 'zod';
+import z from 'zod';
 
 export const registerSchema = z.object({
   fullname: z.string().trim().min(3, 'Name must be at least three character'),
