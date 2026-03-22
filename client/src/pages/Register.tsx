@@ -1,8 +1,36 @@
 /** @format */
 
-import { Link } from 'react-router';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { userRegister } from '../api';
 
 const Register = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    fullname: '',
+    email: '',
+    password: '',
+  });
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  }
+
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    console.log(formData);
+
+    const res = await userRegister(formData);
+    if (!res?.data.success) throw new Error(res.data.message);
+
+    navigate('/about');
+  }
+
   return (
     <section className='pt-20'>
       <div className='container'>
@@ -10,13 +38,19 @@ const Register = () => {
           <h1 className='text-3xl font-bold text-gray-900 text-center'>
             Register for continue
           </h1>
-          <form className='flex flex-col justify-center w-full max-w-md mx-auto px-6 mt-8'>
+          <form
+            onSubmit={handleSubmit}
+            className='flex flex-col justify-center w-full max-w-md mx-auto px-6 mt-8'
+          >
             {/* Full Name */}
             <input
               type='text'
               placeholder='Full name'
               className='w-full mb-5 border border-gray-300 rounded-lg px-4 py-3 text-sm
                    focus:outline-none focus:ring-2 focus:ring-blue-600'
+              name='fullname'
+              value={formData.fullname}
+              onChange={handleChange}
               required
             />
 
@@ -25,6 +59,9 @@ const Register = () => {
               placeholder='Email'
               className='w-full mb-5 border border-gray-300 rounded-lg px-4 py-3 text-sm
                    focus:outline-none focus:ring-2 focus:ring-blue-600'
+              name='email'
+              value={formData.email}
+              onChange={handleChange}
               required
             />
 
@@ -32,6 +69,9 @@ const Register = () => {
               type='password'
               placeholder='Password'
               className='w-full mb-5 border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600'
+              name='password'
+              value={formData.password}
+              onChange={handleChange}
               required
             />
 
