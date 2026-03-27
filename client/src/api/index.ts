@@ -1,5 +1,6 @@
 /** @format */
 
+import type { AxiosError } from 'axios';
 import axios from '../services/aptiClient';
 
 export function userRegister(data: {
@@ -36,4 +37,13 @@ export function userLogin(data: { email: string; password: string }) {
     const message = error.reponse?.data?.message || 'Somthing went wrong';
     console.log('Error :', message);
   }
+}
+
+export async function userLogout() {
+  const res = axios.get('auth/logout');
+  return res.catch((err: AxiosError) => {
+    if (err.response) return err.response;
+    const message = 'Somthing went wrong';
+    console.log('Error :', message);
+  });
 }
