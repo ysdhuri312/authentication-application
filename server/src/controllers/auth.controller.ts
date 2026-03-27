@@ -179,11 +179,13 @@ export const refreshToken = asynError(async (req, res) => {
 });
 
 export const logout = asynError(async (req, res) => {
-  const userId = req.user?.id;
-  console.log(userId);
-  if (!userId) throw new CustomErrorHandler(401, 'User not logged in');
+  const id = req.user?.id;
+  console.log(id);
+  if (!id) throw new CustomErrorHandler(401, 'User not logged in');
 
-  await prisma.refreshToken.delete({ where: { id: userId } });
+  await prisma.refreshToken.deleteMany({
+    where: { userId: id },
+  });
 
   res
     .status(200)
