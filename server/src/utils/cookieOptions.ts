@@ -12,5 +12,5 @@ type CookieObject = {
 export const cookieOptions: CookieObject = {
   httpOnly: true,
   secure: env.NODE_ENV === 'dev' ? false : true,
-  sameSite: env.NODE_ENV === 'dev' ? 'none' : 'strict',
+  sameSite: env.NODE_ENV === 'dev' ? 'lax' : 'strict',
 };
