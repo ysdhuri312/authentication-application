@@ -1,6 +1,6 @@
 /** @format */
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { userLogin } from '../api';
 
@@ -8,15 +8,6 @@ const Login = () => {
   const emailRef = useRef<HTMLInputElement | null>(null);
   const passwordRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
-
-  // const [formData, setFormData] = useState({ email: '', password: '' });
-  // function handleChange(e: React.ChangeEvent<HTMLFormElement>) {
-  //   const { name, value } = e.target;
-  //   setFormData({
-  //     ...formData,
-  //     [name]: value,
-  //   });
-  // }
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
