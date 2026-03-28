@@ -10,6 +10,8 @@ const envSchema = z.object({
   JWT_REFRESH_TOKEN: z.string().min(10),
   ACCESS_TOKEN_EXPIRY: z.string().transform((val) => Number(val)),
   REFRESH_TOKEN_EXPIRY: z.string().transform((val) => Number(val)),
+  EMAIL: z.email(),
+  EMAIL_APP_PASSWORD: z.string(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

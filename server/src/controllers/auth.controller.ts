@@ -17,6 +17,7 @@ import {
 import CustomErrorHandler from '../handlers/CustomError';
 import { cookieOptions } from '../utils/cookieOptions';
 import { env } from '../config/env';
+import { emailVerify } from '../services/emailVerification';
 
 export const register = asynError(
   async (req: Request<{}, {}, RegisterDTO>, res) => {
@@ -56,6 +57,8 @@ export const register = asynError(
         expireAt: new Date(Date.now() + env.REFRESH_TOKEN_EXPIRY),
       },
     });
+
+    emailVerify(email);
 
     res
       .status(201)
