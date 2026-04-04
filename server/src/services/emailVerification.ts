@@ -1,12 +1,15 @@
 /** @format */
 
 import nodemailer from 'nodemailer';
+import ejs from 'ejs';
+import path from 'node:path';
+import { env } from '../config/env';
 
-export const emailVerify = async (email: string) => {
+export const emailVerify = async (token: string, email: string) => {
   const transporter = nodemailer.createTransport({
     auth: {
-      user: process.env.EMAIL,
-      pass: process.env.EMAIL_APP_PASSWORD,
+      user: env.EMAIL,
+      pass: env.EMAIL_APP_PASSWORD,
     },
     service: 'gmail',
   });
@@ -18,12 +21,15 @@ export const emailVerify = async (email: string) => {
     console.error('Verification failed:', error);
   }
 
+  const html = path.join(path.resolve(), '/src/services/emailTemplate.ejs');
+  const emailTemplate = await ejs.renderFile(html, { token });
+
   try {
     const info = await transporter.sendMail({
       from: process.env.EMAIL,
       to: email,
       subject: 'Email Verification',
-      html: '<b>Hello world?</b>',
+      html: emailTemplate,
     });
 
     console.log('Message sent: %s', info.messageId);

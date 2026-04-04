@@ -13,6 +13,7 @@ import {
   creatAccessToken,
   creatRefreshToken,
   verifyRefreshToken,
+  createEmailVerificationToken,
 } from '../utils/token';
 import CustomErrorHandler from '../handlers/CustomError';
 import { cookieOptions } from '../utils/cookieOptions';
@@ -58,7 +59,13 @@ export const register = asynError(
       },
     });
 
-    emailVerify(email);
+    const emailVerificationToken = createEmailVerificationToken(payload);
+    await emailVerify(emailVerificationToken, email);
+
+    await prisma.user.update({
+      where: { email },
+      data: { emailVerifyToken: emailVerificationToken },
+    });
 
     res
       .status(201)

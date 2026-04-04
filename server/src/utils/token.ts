@@ -38,3 +38,10 @@ export const verifyAccessToken = (token: string): jwtPayload => {
     throw new CustomErrorHandler(401, 'Invalid access token');
   }
 };
+
+export const createEmailVerificationToken = (payload: jwtPayload) => {
+  const token = jwt.sign(payload, env.EMAIL_TOKEN_SECRET, {
+    expiresIn: '10min',
+  });
+  return token;
+};
