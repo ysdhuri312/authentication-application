@@ -14,6 +14,8 @@ export const emailVerify = async (token: string, email: string) => {
     service: 'gmail',
   });
 
+  const verificationLink = `http://localhost:3000/api/v1/auth/verify-email?t=${token}`;
+
   try {
     await transporter.verify();
     console.log('Server is ready to take our messages');
@@ -22,7 +24,7 @@ export const emailVerify = async (token: string, email: string) => {
   }
 
   const html = path.join(path.resolve(), '/src/services/emailTemplate.ejs');
-  const emailTemplate = await ejs.renderFile(html, { token });
+  const emailTemplate = await ejs.renderFile(html, { verificationLink });
 
   try {
     const info = await transporter.sendMail({
