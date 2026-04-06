@@ -1,23 +1,24 @@
 /** @format */
 
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { userLogout } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 const About = () => {
   const navigate = useNavigate();
 
-  const user: { name: string; email: string; role: 'USER' | 'ADMIN' } = {
-    name: 'Yogesh Dhuri',
-    email: 'ysdhuri312@gmail.com',
-    role: 'USER',
-  };
+  const { user, setUser } = useAuth();
 
-  // const user = false;
+  // const user: { name: string; email: string; role: 'USER' | 'ADMIN' } = {
+  //   name: 'Yogesh Dhuri',
+  //   email: 'ysdhuri312@gmail.com',
+  //   role: 'USER',
+  // };
 
-  async function handleSubmit() {
+  async function handleLogout() {
     const res = await userLogout();
     if (!res?.data.success) throw new Error(res?.data.message);
-
+    setUser(null);
     navigate('/');
   }
 
@@ -30,12 +31,15 @@ const About = () => {
             Role
           </p>
           {user && user.role === 'ADMIN' ? (
-            <button className='bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-sm transition cursor-pointer'>
+            <Link
+              to='/dashboard'
+              className='bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-sm transition cursor-pointer'
+            >
               Dashbord
-            </button>
+            </Link>
           ) : null}
           <button
-            onClick={handleSubmit}
+            onClick={handleLogout}
             className='bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-sm transition cursor-pointer'
           >
             Logout
