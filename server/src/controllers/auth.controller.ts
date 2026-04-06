@@ -13,11 +13,12 @@ import {
   creatAccessToken,
   creatRefreshToken,
   verifyRefreshToken,
-  createEmailVerificationToken,
+  verifyAccessToken,
 } from '../utils/token';
 import CustomErrorHandler from '../handlers/CustomError';
 import { cookieOptions } from '../utils/cookieOptions';
 import { env } from '../config/env';
+import crypto from 'crypto';
 import { emailVerify } from '../services/emailVerification';
 
 export const register = asynError(
@@ -59,13 +60,17 @@ export const register = asynError(
       },
     });
 
-    const emailVerificationToken = createEmailVerificationToken(payload);
-    await emailVerify(emailVerificationToken, email);
+    const emailVerificationToken = crypto.randomBytes(32).toString('hex');
 
     await prisma.user.update({
       where: { email },
-      data: { emailVerifyToken: emailVerificationToken },
+      data: {
+        emailVerifyToken: emailVerificationToken,
+        emailTokenExpiry: new Date(Date.now() + 10 * 60 * 1000),
+      },
     });
+
+    await emailVerify(emailVerificationToken, email);
 
     res
       .status(201)
@@ -190,7 +195,6 @@ export const refreshToken = asynError(async (req, res) => {
 
 export const logout = asynError(async (req, res) => {
   const id = req.user?.id;
-  console.log(id);
   if (!id) throw new CustomErrorHandler(401, 'User not logged in');
 
   await prisma.refreshToken.deleteMany({
@@ -211,4 +215,57 @@ export const logout = asynError(async (req, res) => {
       success: true,
       messsage: 'User logout successfully',
     });
+});
+
+export const me = asynError(async (req, res) => {
+  if (!req.cookies.access_token)
+    throw new CustomErrorHandler(401, 'User must logged in');
+
+  const authHeader = req.cookies.access_token.split(' ')[1];
+  let accessToken = authHeaderSchema.safeParse(authHeader);
+  if (!accessToken.success)
+    throw new CustomErrorHandler(401, 'Invalid authorization header');
+
+  const payload = verifyAccessToken(accessToken.data);
+  if (!payload) throw new CustomErrorHandler(403, 'Token revoked');
+
+  const user = await prisma.user.findUnique({ where: { id: payload.id } });
+  if (!user) throw new CustomErrorHandler(403, 'Unauthorized');
+
+  res.status(202).json({
+    success: true,
+    message: `Welcome back !`,
+    user: payload,
+  });
+});
+
+export const verifyEmail = asynError(async (req, res) => {
+  const { t } = req.query;
+  if (!t || typeof t !== 'string') {
+    throw new CustomErrorHandler(400, 'Invalid token');
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      emailVerifyToken: t,
+      emailTokenExpiry: {
+        gte: new Date(),
+      },
+    },
+  });
+
+  if (!user) {
+    return res.status(400).json({ message: 'Invalid or expired token' });
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      isVerified: true,
+      emailVerifyToken: null,
+      emailTokenExpiry: null,
+    },
+  });
+
+  res.json({ message: 'Email verified successfully' });
 });
