@@ -6,6 +6,8 @@ import {
   logout,
   refreshToken,
   register,
+  me,
+  verifyEmail,
 } from '../../controllers/auth.controller';
 import validate from '../../middlewares/validate';
 import { loginSchema, registerSchema } from '../../schemas/auth.schema';
@@ -17,5 +19,7 @@ router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
 router.post('/refresh', refreshToken);
 router.get('/logout', isAuthorized, logout);
+router.get('/me', me);
+router.get('/verify-email', verifyEmail);
 
 export default router;
