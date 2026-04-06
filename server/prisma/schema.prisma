@@ -19,7 +19,8 @@ model User {
   fullname String?
   role Role @default(USER)
   isVerified Boolean @default(false)
-  emailVerifyToken String @default("")
+  emailVerifyToken String?
+  emailTokenExpiry DateTime?
   
   createdAt DateTime @default(now())
   refreshToken RefreshToken[]
