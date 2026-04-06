@@ -7,6 +7,8 @@ import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Layout from '../components/Layout';
 import About from '../pages/About';
+import ProtectedRoute from '../components/ProtectedRoute';
+import Dashboard from '../pages/Dashboard';
 
 const router = createBrowserRouter([
   {
@@ -24,7 +26,19 @@ const router = createBrowserRouter([
       },
       {
         path: 'about',
-        element: <About />,
+        element: (
+          <ProtectedRoute>
+            <About />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'dashboard',
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
       },
     ],
   },

@@ -3,11 +3,13 @@
 import { useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { userLogin } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const emailRef = useRef<HTMLInputElement | null>(null);
   const passwordRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -19,7 +21,7 @@ const Login = () => {
 
     const res = await userLogin({ email, password });
     if (!res?.data.success) throw new Error(res.data.message);
-
+    setUser(res.data.user);
     navigate('/about');
   }
 
