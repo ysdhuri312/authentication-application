@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 import { jwtPayload } from '../types/jwt';
 import CustomErrorHandler from '../handlers/CustomError';
+import crypto from 'crypto';
 
 export const creatAccessToken = (payload: jwtPayload) => {
   const token = jwt.sign(payload, env.JWT_ACCESS_TOKEN, {
@@ -37,4 +38,12 @@ export const verifyAccessToken = (token: string): jwtPayload => {
   } catch (err) {
     throw new CustomErrorHandler(401, 'Invalid access token');
   }
+};
+
+export const generateResetToken = () => {
+  return crypto.randomBytes(32).toString('hex');
+};
+
+export const hashToken = (token: string) => {
+  return crypto.createHash('sha256').update(token).digest('hex');
 };
