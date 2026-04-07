@@ -47,3 +47,25 @@ export async function userLogout() {
     console.log('Error :', message);
   });
 }
+
+export async function forgotPassword(email: string) {
+  const res = axios.post('auth/forgot-password', { email });
+  return res.catch((err: AxiosError) => {
+    if (err.response) return err.response;
+    const message = 'Somthing went wrong';
+    console.log('Error :', message);
+  });
+}
+
+export async function resetPassword(password: string, token: string) {
+  const res = axios.post(
+    'auth/reset-password',
+    { password },
+    { params: { t: token } },
+  );
+  return res.catch((err: AxiosError) => {
+    if (err.response) return err.response;
+    const message = 'Somthing went wrong';
+    console.log('Error :', message);
+  });
+}
