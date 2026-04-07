@@ -14,12 +14,15 @@ import {
   creatRefreshToken,
   verifyRefreshToken,
   verifyAccessToken,
+  generateResetToken,
+  hashToken,
 } from '../utils/token';
 import CustomErrorHandler from '../handlers/CustomError';
 import { cookieOptions } from '../utils/cookieOptions';
 import { env } from '../config/env';
 import crypto from 'crypto';
 import { emailVerify } from '../services/emailVerification';
+import { sendResetEmail } from '../services/sendResetEmail';
 
 export const register = asynError(
   async (req: Request<{}, {}, RegisterDTO>, res) => {
@@ -255,7 +258,9 @@ export const verifyEmail = asynError(async (req, res) => {
   });
 
   if (!user) {
-    return res.status(400).json({ message: 'Invalid or expired token' });
+    return res
+      .status(400)
+      .json({ success: false, message: 'Invalid or expired token' });
   }
 
   await prisma.user.update({
@@ -267,5 +272,74 @@ export const verifyEmail = asynError(async (req, res) => {
     },
   });
 
-  res.json({ message: 'Email verified successfully' });
+  res.json({ success: true, message: 'Email verified successfully' });
+});
+
+export const forgotPassword = asynError(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
+    return res.json({
+      success: false,
+      message: 'If email exists, reset link sent',
+    });
+  }
+
+  const token = generateResetToken();
+  const tokenHash = hashToken(token);
+
+  const expireAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  //delete old token in db
+  await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+
+  await prisma.passwordResetToken.create({
+    data: {
+      tokenHash,
+      userId: user.id,
+      expireAt,
+    },
+  });
+
+  await sendResetEmail(email, token);
+
+  res.json({ success: true, message: 'If email exists, reset link sent' });
+});
+
+export const resetPassword = asynError(async (req, res) => {
+  const token = req.query.t;
+  if (!token || typeof token !== 'string') {
+    throw new CustomErrorHandler(400, 'Invalid or missing token');
+  }
+
+  const { password } = req.body;
+  const tokenHash = hashToken(token);
+
+  const record = await prisma.passwordResetToken.findUnique({
+    where: { tokenHash },
+  });
+
+  if (!record) {
+    return res.status(400).json({ message: 'Invalid token' });
+  }
+
+  if (record.expireAt < new Date()) {
+    return res.status(400).json({ message: 'Token expired' });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  await prisma.user.update({
+    where: { id: record.userId },
+    data: { password: hashedPassword },
+  });
+
+  // delete token after use
+  await prisma.passwordResetToken.delete({
+    where: { tokenHash },
+  });
+
+  res.json({ success: true, message: 'Password reset successful' });
 });
