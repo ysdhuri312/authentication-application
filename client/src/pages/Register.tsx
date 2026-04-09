@@ -23,10 +23,15 @@ const Register = () => {
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    console.log(formData);
-
     const res = await userRegister(formData);
     if (!res?.data.success) throw new Error(res.data.message);
+
+    navigate('/about');
+  }
+
+  async function loginWithGoogle() {
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+    // if (!res?.data.success) throw new Error(res.data.message);
 
     navigate('/about');
   }
@@ -100,7 +105,10 @@ const Register = () => {
             </div>
 
             <div className='flex justify-center gap-4 mb-6'>
-              <button className='w-12 h-12 border rounded-lg flex items-center justify-center hover:bg-gray-50 cursor-pointer'>
+              <button
+                onClick={loginWithGoogle}
+                className='w-12 h-12 border rounded-lg flex items-center justify-center hover:bg-gray-50 cursor-pointer'
+              >
                 <svg
                   className='w-7'
                   xmlns='http://www.w3.org/2000/svg'

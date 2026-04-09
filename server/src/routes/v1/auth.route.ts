@@ -10,6 +10,8 @@ import {
   verifyEmail,
   forgotPassword,
   resetPassword,
+  googleAuthHandler,
+  googleAuthCallbackHandler,
 } from '../../controllers/auth.controller';
 import validate from '../../middlewares/validate';
 import { loginSchema, registerSchema } from '../../schemas/auth.schema';
@@ -25,5 +27,7 @@ router.get('/me', me);
 router.get('/verify-email', verifyEmail);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
+router.get('/google', googleAuthHandler);
+router.get('/google/callback', googleAuthCallbackHandler);
 
 export default router;

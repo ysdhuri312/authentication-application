@@ -1,13 +1,15 @@
 /** @format */
 
-import asynError from '../handlers/asyncError';
 import { Request } from 'express';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+
+import asynError from '../handlers/asyncError';
 import {
   authHeaderSchema,
   loginDTO,
   RegisterDTO,
 } from '../schemas/auth.schema';
-import bcrypt from 'bcryptjs';
 import { prisma } from '../config/db';
 import {
   creatAccessToken,
@@ -20,13 +22,23 @@ import {
 import CustomErrorHandler from '../handlers/CustomError';
 import { cookieOptions } from '../utils/cookieOptions';
 import { env } from '../config/env';
-import crypto from 'crypto';
 import { emailVerify } from '../services/emailVerification';
 import { sendResetEmail } from '../services/sendResetEmail';
+import { getGoogleClient } from '../services/googleClient';
 
 export const register = asynError(
   async (req: Request<{}, {}, RegisterDTO>, res) => {
     const { fullname, email, password } = req.body;
+
+    const isAlreadyRegister = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (isAlreadyRegister)
+      throw new CustomErrorHandler(
+        401,
+        'User already register, Please logged in or forgot password',
+      );
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -342,4 +354,98 @@ export const resetPassword = asynError(async (req, res) => {
   });
 
   res.json({ success: true, message: 'Password reset successful' });
+});
+
+export const googleAuthHandler = asynError(async (req, res) => {
+  const client = getGoogleClient();
+
+  const url = client.generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    scope: ['openid', 'email', 'profile'],
+  });
+
+  return res.redirect(url);
+});
+
+export const googleAuthCallbackHandler = asynError(async (req, res) => {
+  const code = req.query.code as string | undefined;
+  if (!code) throw new CustomErrorHandler(400, 'Missing code in callback');
+
+  const client = getGoogleClient();
+
+  const { tokens } = await client.getToken(code);
+  if (!tokens.id_token)
+    throw new CustomErrorHandler(400, 'Google id_token is not present');
+
+  const ticket = await client.verifyIdToken({
+    idToken: tokens.id_token,
+    audience: env.GOOGLE_CLIENT_ID,
+  });
+
+  const payload = ticket.getPayload();
+
+  const email = payload?.email;
+  if (!email || !payload.email_verified)
+    throw new CustomErrorHandler(400, 'Google account not verified');
+
+  const normalizeEmail = email.toLowerCase().trim();
+
+  const isAlreadyRegister = await prisma.user.findUnique({
+    where: { email: normalizeEmail },
+  });
+
+  if (isAlreadyRegister)
+    throw new CustomErrorHandler(
+      401,
+      'User already register, Please logged in or forgot password',
+    );
+
+  const password = crypto.randomBytes(16).toString('hex');
+  const hashedPassword = crypto
+    .createHash('sha256')
+    .update(password)
+    .digest('hex');
+
+  const user = await prisma.user.create({
+    data: {
+      fullname: payload.name!,
+      email,
+      password: hashedPassword,
+      isVerified: true,
+      provider: 'google',
+      providerID: payload.sub,
+    },
+    select: {
+      id: true,
+      fullname: true,
+      email: true,
+      role: true,
+      createdAt: true,
+    },
+  });
+
+  const { id, email: userEmail, role } = user;
+  const accessToken = creatAccessToken({ id, userEmail, role });
+  const refreshToken = creatRefreshToken({ id, userEmail, role });
+
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: id,
+      expireAt: new Date(Date.now() + env.REFRESH_TOKEN_EXPIRY),
+    },
+  });
+
+  res
+    .status(201)
+    .cookie('access_token', `Bearer ${accessToken}`, {
+      ...cookieOptions,
+      maxAge: env.ACCESS_TOKEN_EXPIRY,
+    })
+    .cookie('refresh_token', `Bearer ${refreshToken}`, {
+      ...cookieOptions,
+      maxAge: env.REFRESH_TOKEN_EXPIRY,
+    })
+    .redirect(`${env.FRONTEND_URL}/about`);
 });

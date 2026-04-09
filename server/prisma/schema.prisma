@@ -18,9 +18,13 @@ model User {
   password String? 
   fullname String?
   role Role @default(USER)
+  
   isVerified Boolean @default(false)
   emailVerifyToken String?
   emailTokenExpiry DateTime?
+  
+  provider String?
+  providerID String? 
   
   createdAt DateTime @default(now())
   

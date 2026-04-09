@@ -13,6 +13,9 @@ const envSchema = z.object({
   REFRESH_TOKEN_EXPIRY: z.string().transform((val) => Number(val)),
   EMAIL: z.email(),
   EMAIL_APP_PASSWORD: z.string(),
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
+  GOOGLE_REDIRECT_URL: z.url(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
