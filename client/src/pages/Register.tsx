@@ -12,18 +12,52 @@ const Register = () => {
     password: '',
   });
 
+  const [errors, setErrors] = useState({
+    fullname: '',
+    email: '',
+    password: '',
+    others: '',
+  });
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
     });
+
+    setErrors({ ...errors, [name]: '' });
   }
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
+    let newErrors = { fullname: '', email: '', password: '', others: '' };
+    let hasError = false;
+
+    if (!formData.fullname.trim()) {
+      newErrors.fullname = 'fullname is required';
+      hasError = true;
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'email is required';
+      hasError = true;
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = 'password is required';
+      hasError = true;
+    }
+
+    setErrors(newErrors);
+    if (hasError) return;
+
     const res = await userRegister(formData);
+    if (!res?.data.success) {
+      newErrors.others = res.data.message || 'Internal server error';
+      hasError = true;
+    }
     if (!res?.data.success) throw new Error(res.data.message);
 
     navigate('/about');
@@ -45,49 +79,52 @@ const Register = () => {
             className='flex flex-col justify-center w-full max-w-md mx-auto px-6 mt-8'
           >
             {/* Full Name */}
-            <input
-              type='text'
-              placeholder='Full name'
-              className='w-full mb-5 border border-gray-300 rounded-lg px-4 py-3 text-sm
-                   focus:outline-none focus:ring-2 focus:ring-blue-600'
-              name='fullname'
-              value={formData.fullname}
-              onChange={handleChange}
-              required
-            />
-
-            <input
-              type='email'
-              placeholder='Email'
-              className='w-full mb-5 border border-gray-300 rounded-lg px-4 py-3 text-sm
-                   focus:outline-none focus:ring-2 focus:ring-blue-600'
-              name='email'
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-
-            <input
-              type='password'
-              placeholder='Password'
-              className='w-full mb-5 border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600'
-              name='password'
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-
-            <label className='flex items-start gap-3 text-sm text-gray-600 mb-6'>
+            <div className='mb-5'>
               <input
-                type='checkbox'
-                defaultChecked
-                className='mt-1 accent-blue-600'
+                type='text'
+                placeholder='Full name'
+                className={`w-full border ${
+                  errors.email ? 'border-red-500' : 'border-gray-300'
+                } rounded-lg px-4 py-3 text-sm
+                   focus:outline-none focus:ring-2 focus:ring-blue-600`}
+                name='fullname'
+                value={formData.fullname}
+                onChange={handleChange}
               />
-              <span>
-                Send me special offers, personalized recommendations, and
-                learning tips.
-              </span>
-            </label>
+              {errors.fullname && (
+                <p className='text-red-500'>{errors.fullname}</p>
+              )}
+            </div>
+            <div className='mb-5'>
+              <input
+                type='email'
+                placeholder='Email'
+                className={`w-full border ${
+                  errors.email ? 'border-red-500' : 'border-gray-300'
+                } rounded-lg px-4 py-3 text-sm
+                   focus:outline-none focus:ring-2 focus:ring-blue-600`}
+                name='email'
+                value={formData.email}
+                onChange={handleChange}
+              />
+              {errors.email && <p className='text-red-500'>{errors.email}</p>}
+            </div>
+            <div className='mb-5'>
+              <input
+                type='password'
+                placeholder='Password'
+                className={`w-full border ${
+                  errors.email ? 'border-red-500' : 'border-gray-300'
+                } rounded-lg px-4 py-3 text-sm
+                   focus:outline-none focus:ring-2 focus:ring-blue-600`}
+                name='password'
+                value={formData.password}
+                onChange={handleChange}
+              />
+              {errors.password && (
+                <p className='text-red-500 m-0 p-0'>{errors.password}</p>
+              )}
+            </div>
 
             <button
               type='submit'
@@ -96,7 +133,9 @@ const Register = () => {
             >
               Continue
             </button>
-
+            {errors.others && (
+              <p className='text-sm text-red-500'>{errors.others}</p>
+            )}
             <div className='text-sm text-gray-500 text-center my-6'>
               Other sign up options
             </div>
