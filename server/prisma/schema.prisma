@@ -12,6 +12,16 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Provider {
+  LOCAL 
+  GOOGLE
+}
+
 model User {
   id Int @id @default(autoincrement())
   email String @unique
@@ -23,7 +33,7 @@ model User {
   emailVerifyToken String?
   emailTokenExpiry DateTime?
   
-  provider String?
+  provider Provider @default(LOCAL)
   providerID String? 
   
   createdAt DateTime @default(now())
@@ -52,7 +62,3 @@ model PasswordResetToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum Role {
-  USER
-  ADMIN
-}
