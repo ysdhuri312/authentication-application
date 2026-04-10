@@ -358,18 +358,23 @@ export const resetPassword = asynError(async (req, res) => {
 
 export const googleAuthHandler = asynError(async (req, res) => {
   const client = getGoogleClient();
+  const mode = req.query.mode as string;
 
   const url = client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
     scope: ['openid', 'email', 'profile'],
+    state: mode,
   });
 
+  console.log(url);
   return res.redirect(url);
 });
 
 export const googleAuthCallbackHandler = asynError(async (req, res) => {
   const code = req.query.code as string | undefined;
+  const state = req.query.state as string | undefined;
+
   if (!code) throw new CustomErrorHandler(400, 'Missing code in callback');
 
   const client = getGoogleClient();
@@ -385,67 +390,109 @@ export const googleAuthCallbackHandler = asynError(async (req, res) => {
 
   const payload = ticket.getPayload();
 
-  const email = payload?.email;
-  if (!email || !payload.email_verified)
+  if (!payload) throw new CustomErrorHandler(400, 'Payload not found');
+
+  const { email, email_verified } = payload;
+  if (!email || !email_verified)
     throw new CustomErrorHandler(400, 'Google account not verified');
 
   const normalizeEmail = email.toLowerCase().trim();
 
-  const isAlreadyRegister = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { email: normalizeEmail },
   });
 
-  if (isAlreadyRegister)
-    throw new CustomErrorHandler(
-      401,
-      'User already register, Please logged in or forgot password',
-    );
+  // auth/google?state=register
+  if (state === 'register') {
+    // if user already register
+    if (user) {
+      return res.redirect('/error?msg=User already exists');
+    }
 
-  const password = crypto.randomBytes(16).toString('hex');
-  const hashedPassword = crypto
-    .createHash('sha256')
-    .update(password)
-    .digest('hex');
+    // user registration process
+    const password = crypto.randomBytes(16).toString('hex');
+    const hashedPassword = crypto
+      .createHash('sha256')
+      .update(password)
+      .digest('hex');
 
-  const user = await prisma.user.create({
-    data: {
-      fullname: payload.name!,
-      email,
-      password: hashedPassword,
-      isVerified: true,
-      provider: 'google',
-      providerID: payload.sub,
-    },
-    select: {
-      id: true,
-      fullname: true,
-      email: true,
-      role: true,
-      createdAt: true,
-    },
-  });
+    const data = await prisma.user.create({
+      data: {
+        fullname: payload.name!,
+        email,
+        password: hashedPassword,
+        isVerified: true,
+        provider: 'GOOGLE',
+        providerID: payload.sub,
+      },
+      select: {
+        id: true,
+        fullname: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
 
-  const { id, email: userEmail, role } = user;
-  const accessToken = creatAccessToken({ id, userEmail, role });
-  const refreshToken = creatRefreshToken({ id, userEmail, role });
+    const { id, email: userEmail, role } = data;
+    const accessToken = creatAccessToken({ id, userEmail, role });
+    const refreshToken = creatRefreshToken({ id, userEmail, role });
 
-  await prisma.refreshToken.create({
-    data: {
-      token: refreshToken,
-      userId: id,
-      expireAt: new Date(Date.now() + env.REFRESH_TOKEN_EXPIRY),
-    },
-  });
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: id,
+        expireAt: new Date(Date.now() + env.REFRESH_TOKEN_EXPIRY),
+      },
+    });
 
-  res
-    .status(201)
-    .cookie('access_token', `Bearer ${accessToken}`, {
-      ...cookieOptions,
-      maxAge: env.ACCESS_TOKEN_EXPIRY,
-    })
-    .cookie('refresh_token', `Bearer ${refreshToken}`, {
-      ...cookieOptions,
-      maxAge: env.REFRESH_TOKEN_EXPIRY,
-    })
-    .redirect(`${env.FRONTEND_URL}/about`);
+    res
+      .status(201)
+      .cookie('access_token', `Bearer ${accessToken}`, {
+        ...cookieOptions,
+        maxAge: env.ACCESS_TOKEN_EXPIRY,
+      })
+      .cookie('refresh_token', `Bearer ${refreshToken}`, {
+        ...cookieOptions,
+        maxAge: env.REFRESH_TOKEN_EXPIRY,
+      })
+      .redirect(`${env.FRONTEND_URL}/about`);
+  }
+
+  // auth/google?state=login
+  if (state === 'login') {
+    // user not registered
+    if (!user) {
+      return res.redirect('/error?msg=Please register first');
+    }
+
+    if (user.provider !== 'GOOGLE') {
+      return res.redirect('/error?msg=Please use another method for login');
+    }
+
+    // user login process
+    const { id, email: userEmail, role } = user;
+    const accessToken = creatAccessToken({ id, userEmail, role });
+    const refreshToken = creatRefreshToken({ id, userEmail, role });
+
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: id,
+        expireAt: new Date(Date.now() + env.REFRESH_TOKEN_EXPIRY),
+      },
+    });
+
+    res
+      .status(201)
+      .cookie('access_token', `Bearer ${accessToken}`, {
+        ...cookieOptions,
+        maxAge: env.ACCESS_TOKEN_EXPIRY,
+      })
+      .cookie('refresh_token', `Bearer ${refreshToken}`, {
+        ...cookieOptions,
+        maxAge: env.REFRESH_TOKEN_EXPIRY,
+      })
+      .redirect(`${env.FRONTEND_URL}/about`);
+  }
 });

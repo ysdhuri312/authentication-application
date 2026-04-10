@@ -29,11 +29,8 @@ const Register = () => {
     navigate('/about');
   }
 
-  async function loginWithGoogle() {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
-    // if (!res?.data.success) throw new Error(res.data.message);
-
-    navigate('/about');
+  async function registerWithGoogle() {
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google?mode=register`;
   }
 
   return (
@@ -106,7 +103,7 @@ const Register = () => {
 
             <div className='flex justify-center gap-4 mb-6'>
               <button
-                onClick={loginWithGoogle}
+                onClick={registerWithGoogle}
                 className='w-12 h-12 border rounded-lg flex items-center justify-center hover:bg-gray-50 cursor-pointer'
               >
                 <svg
