@@ -367,7 +367,6 @@ export const googleAuthHandler = asynError(async (req, res) => {
     state: mode,
   });
 
-  console.log(url);
   return res.redirect(url);
 });
 
