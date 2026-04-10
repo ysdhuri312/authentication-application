@@ -1,6 +1,6 @@
 /** @format */
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { userLogin } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -10,16 +10,40 @@ const Login = () => {
   const passwordRef = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
   const { setUser } = useAuth();
+  const [errors, setErrors] = useState({
+    email: '',
+    password: '',
+    others: '',
+  });
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const email = emailRef.current?.value;
-    const password = passwordRef.current?.value;
+    const email = emailRef.current?.value || '';
+    const password = passwordRef.current?.value || '';
 
-    if (!email || !password) throw new Error();
+    let newErrors = { email: '', password: '', others: '' };
+    let hasError = false;
+
+    if (!email.trim()) {
+      newErrors.email = 'email is required';
+      hasError = true;
+    }
+
+    if (!password.trim()) {
+      newErrors.password = 'password is required';
+      hasError = true;
+    }
 
     const res = await userLogin({ email, password });
+    if (!res?.data.success) {
+      newErrors.others = res.data.message || 'Internal server Error';
+      hasError = true;
+    }
+
+    setErrors(newErrors);
+    if (hasError) return;
+
     if (!res?.data.success) throw new Error(res.data.message);
     setUser(res.data.user);
     navigate('/about');
@@ -30,37 +54,48 @@ const Login = () => {
   }
 
   return (
-    <section className='pt-10'>
+    <section className='pt-20'>
       <div className='container'>
         <div className='flex flex-col justify-center items-center h-screen'>
-          <h1 className='mb-3 text-3xl font-bold text-gray-900 text-center '>
+          <h1 className='text-3xl font-bold text-gray-900 text-center '>
             Log in to continue
           </h1>
-          <form onSubmit={handleSubmit}>
-            <input
-              type='email'
-              placeholder='Email'
-              name='email'
-              className='w-full mb-5 border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600'
-              ref={emailRef}
-              required
-            />
+          <form
+            onSubmit={handleSubmit}
+            className='flex flex-col justify-center w-full max-w-md mx-auto px-6 mt-8'
+          >
+            <div className='mb-5'>
+              <input
+                type='email'
+                placeholder='Email'
+                name='email'
+                className='w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600'
+                ref={emailRef}
+              />
+              {errors.email && <p className='text-red-500'>{errors.email}</p>}
+            </div>
 
-            <input
-              type='password'
-              placeholder='Password'
-              name='password'
-              className='w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600'
-              ref={passwordRef}
-              required
-            />
+            <div className='mb-5'>
+              <input
+                type='password'
+                placeholder='Password'
+                name='password'
+                className='w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600'
+                ref={passwordRef}
+              />
+              {errors.password && (
+                <p className='text-red-500'>{errors.password}</p>
+              )}
+            </div>
 
             <button
               type='submit'
-              className='w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition cursor-pointer'
+              className='w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition cursor-pointer'
             >
               Continue
             </button>
+            {errors.others && <p className='text-red-500'>{errors.others}</p>}
+
             <div className='w-full mt-3 bg-gray-50 rounded-lg py-3 text-center cursor-pointer'>
               <Link
                 to='/forgot-password'
